@@ -1,6 +1,6 @@
 # Songbook
 
-Takes files which are associated with songs, like
+Takes a folder with song parts like
 
 * lyrics
 * lead sheets
