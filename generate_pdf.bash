@@ -8,9 +8,10 @@
 # - identify (to count the page numbers of pdf files)
 # - qpdf (to merge pdf files)
 #
-# TODO:
-# - add leading zeros for correct sorting for qpdf
-# - use latex to print page number on pdfs
+# TODO: add leading zeros for correct sorting for qpdf
+# TODO: refactor to use latex
+# TODO: then print page number on pdfs
+# TODO: then use makefile
 
 # Define Colors for terminal output
 red='\u001b[31m'
