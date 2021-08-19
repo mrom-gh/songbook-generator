@@ -14,3 +14,8 @@ are pdf and text, the output format is pdf.
 
 ![screenshot](screenshot-songbook.png?raw=true "Songbook")
 
+## Input file format
+- file extension needs to be .md
+- formatted markdown is preferred
+- plain text with indentadtion is possible -> is read as code blocks with formatting as-is
+
