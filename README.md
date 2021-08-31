@@ -18,4 +18,3 @@ are pdf and text, the output format is pdf.
 - file extension needs to be .md
 - formatted markdown is preferred
 - plain text with indentadtion is possible -> is read as code blocks with formatting as-is
-

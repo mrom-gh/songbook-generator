@@ -10,7 +10,7 @@
 # Define globals
 SONGBOOK_TITLE="Songbook"  # default value
 DIR_IN="$PWD/in"  # default value
-DIR_TMP="$PWD/out/tmp"
+DIR_TMP="$PWD/out/tmp"  # default value
 DIR_HTML="$PWD/out/html"
 DIR_LOGS="$PWD/logs"
 MARKDOWN=""  # path of intermediate Markdown file
@@ -23,8 +23,14 @@ for i in "$@"; do
       SONGBOOK_TITLE="${i#*=}"
       shift # past argument=value
       ;;
-    -d=*|--dir=*)
+    -i=*|--input=*)
       DIR_IN="${i#*=}"
+      shift # past argument=value
+      ;;
+    -o=*|--output=*)
+      DIR_TMP="${i#*=}/tmp"
+      DIR_HTML="${i#*=}/html"
+      INDEX="$DIR_TMP/index.md"
       shift # past argument=value
       ;;
     *)
