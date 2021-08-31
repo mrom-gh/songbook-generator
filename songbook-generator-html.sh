@@ -7,22 +7,42 @@
 # - Manually formatted Markdown (needs to have extension .md)
 # - PDF
 
+# Define globals
+SONGBOOK_TITLE="Songbook"  # default value
+DIR_IN="$PWD/in"  # default value
+DIR_TMP="$PWD/out/tmp"
+DIR_HTML="$PWD/out/html"
+DIR_LOGS="$PWD/logs"
+MARKDOWN=""  # path of intermediate Markdown file
+INDEX="$DIR_TMP/index.md"
+
+# Handle command line options
+for i in "$@"; do
+  case $i in
+    -t=*|--title=*)
+      SONGBOOK_TITLE="${i#*=}"
+      shift # past argument=value
+      ;;
+    -d=*|--dir=*)
+      DIR_IN="${i#*=}"
+      shift # past argument=value
+      ;;
+    *)
+      # unknown option
+      ;;
+  esac
+done
+
+# Prepare directories and files
+mkdir -p "$DIR_TMP"
+mkdir -p "$DIR_HTML"
+mkdir -p "$DIR_LOGS"
+[[ -e "$INDEX" ]] && rm "$INDEX"
+
 # Define colors for terminal output
 green='\u001b[32m'
 yellow='\u001b[33m'
 nc='\e[0m'
-
-# Prepare globals and directories
-DIR_IN="$PWD/in"
-DIR_TMP="$PWD/out/tmp"
-DIR_HTML="$PWD/out/html"
-DIR_LOGS="$PWD/logs"
-[[ -d "$DIR_TMP" ]] || mkdir "$DIR_TMP"
-[[ -d "$DIR_HTML" ]] || mkdir "$DIR_HTML"
-[[ -d "$DIR_LOGS" ]] || mkdir "$DIR_LOGS"
-MARKDOWN=""  # path of intermediate Markdown file
-INDEX="$DIR_TMP/index.md"
-[[ -e "$INDEX" ]] && rm "$INDEX"
 
 # Prepare intermediate Markdown in $DIR_TMP for all in files and the index
 cd "$DIR_IN"
@@ -72,7 +92,7 @@ for file in *; do
   [[ $skip -ne 1 ]] && printf -- '- [%s](%s)\n' "${file%.*}" "${file%.*}.html" >> "$INDEX"
   skip=0
 done
-sed -i "1i %Songbook" $INDEX  # add songbook title to index
+sed -i "1i %${SONGBOOK_TITLE}" $INDEX  # add songbook title to index
 
 # Generate HTML from Markdown
 cd "$DIR_TMP"
