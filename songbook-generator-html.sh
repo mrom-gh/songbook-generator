@@ -16,7 +16,8 @@ DIR_LOGS="$PWD/logs"
 MARKDOWN=""  # path of intermediate Markdown file
 INDEX="$DIR_TMP/index.md"
 
-# Handle command line options
+# Handle command line options for songbook title
+# and input and output directories
 for i in "$@"; do
   case $i in
     -t=*|--title=*)
@@ -78,15 +79,18 @@ for file in *; do
   elif [[ "${file#*.}" = "pdf" ]]; then
     echo -e "${green}Generating intermediate Markdown with embedded copies of $file...${nc}"
 
-    # Desktop
+    # Responsive html for pdf embedding
     [[ -d "$DIR_HTML/pdf" ]] || mkdir "$DIR_HTML/pdf"
     cp "$file" "$DIR_HTML/pdf/$file"
-    printf '<embed src="%s" width="800px" height="1150px"/>' "pdf/$file" >> "$MARKDOWN"
-
-    # Mobile
-    #[[ -d "$DIR_OUT/html/img" ]] || mkdir "$DIR_OUT/html/img"
-    # TODO: convert -- cp "$file" "$DIR_OUT/html/pdf/$file"
-    # TODO: embed
+    printf '<embed src="%s" width="67%%" height="1150px" class="embedding"/>' "pdf/$file" >> "$MARKDOWN"
+    printf '<p class="link">
+              Screen width below 500 pixels detected.
+	      Assuming a mobile device without support for embedding pdfs.
+	      Click to open pdf externally:
+	    </p>\n' "pdf/$file" >> "$MARKDOWN"
+    printf '<a href="%s" class="link">%s</a>' "pdf/$file" "pdf/$file" >> "$MARKDOWN"
+    printf '<style type="text/css"> .embedding{display:none;} </style>' >> "$MARKDOWN"
+    printf '<style type="text/css"> @media (min-width: 500px) {.embedding{display:block;} .link{display:none;} </style>' >> "$MARKDOWN"
 
   # Other (don't do anything but raise awareness)
   else
