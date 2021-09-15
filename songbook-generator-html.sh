@@ -82,11 +82,10 @@ for file in *; do
     # Responsive html for pdf embedding
     [[ -d "$DIR_HTML/pdf" ]] || mkdir "$DIR_HTML/pdf"
     cp "$file" "$DIR_HTML/pdf/$file"
-    printf '<embed src="%s" width="67%%" height="1150px" class="embedding"/>' "pdf/$file" >> "$MARKDOWN"
+    printf '<embed src="%s" width="61.8%%" height="1150px" class="embedding"/>' "pdf/$file" >> "$MARKDOWN"
     printf '<p class="link">
-              Screen width below 500 pixels detected.
-	      Assuming a mobile device without support for embedding pdfs.
-	      Click to open pdf externally:
+              Width below 500 pixels detected.
+	      If you are using a mobile device without support for embedding pdfs, click to open the pdf externally:
 	    </p>\n' "pdf/$file" >> "$MARKDOWN"
     printf '<a href="%s" class="link">%s</a>' "pdf/$file" "pdf/$file" >> "$MARKDOWN"
     printf '<style type="text/css"> .embedding{display:none;} </style>' >> "$MARKDOWN"
@@ -109,7 +108,13 @@ cd "$DIR_TMP"
 echo
 for file in *.md; do
   echo -e "${green}Converting $file to HTML...${nc}"
-  pandoc -s "$file" -o "$DIR_HTML/${file%.*}.html" 2> /dev/null
+
+  # Handle ISO-8859-encoded files
+  [[ $(file "$file" | sed -E 's/^.*: ([^ ]*).*/\1/') == "ISO-8859" ]] \
+    && echo "  Detected ISO-8859 encoding, converting to UTF-8..." \
+    && iconv -f ISO-8859-1 -t UTF-8 -o "$file" "$file" 
+
+  pandoc -s "$file" -o "$DIR_HTML/${file%.*}.html"
 done
 
 # Cleanup

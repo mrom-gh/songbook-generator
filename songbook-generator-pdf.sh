@@ -70,6 +70,13 @@ done
 # Generate PDF from Markdown
 cd "$DIR_TMP"
 echo
+echo -e "${green}Checking for ISO-8859 encodings in intermediate Markdown...${nc}"
+for file in *.md; do
+  [[ $(file "$file" | sed -E 's/^.*: ([^ ]*).*/\1/') == "ISO-8859" ]] \
+    && echo -e "  ${green}Detected ISO-8859 encoding in $file, converting to UTF-8...${nc}" \
+    && iconv -f ISO-8859-1 -t UTF-8 -o "$file" "$file"  
+done
+
 echo -e "${green}Converting to PDF...${nc}"
 pandoc $( ls *.md ) \
   -V header-includes="\usepackage{pdfpages}" --pdf-engine=pdflatex --toc \
