@@ -52,7 +52,7 @@ yellow='\u001b[33m'
 nc='\e[0m'
 
 # Prepare intermediate Markdown in $DIR_TMP for all in files and the index
-cd "$DIR_IN"
+cd "$DIR_IN" || exit 1
 for file in *; do
   MARKDOWN="$DIR_TMP/${file%.*}.md"
 
@@ -61,17 +61,31 @@ for file in *; do
     cp "$file" "$MARKDOWN"
 
   # Plain text input
-  # - The first line of the in file is taken as title
-  # - All line breaks of the in file are enforced in the Markdown
-  # - Lines starting with "|" are formatted as code
-  # - Verse|Refrain|Chorus|Bridge|Interlude are italicized
   elif [[ "${file#*.}" = "txt" ]]; then
     echo -e "${green}Generating intermediate Markdown from $file...${nc}"
     cp "$file" "$MARKDOWN"
+
+    # Convert intermediate Markdown to UTF-8 if it is ISO-8859-encoded
+    if [[ $(file "$MARKDOWN" | sed -E 's/^.*: ([^ ]*).*/\1/') == "ISO-8859" ]]; then
+      echo "  Detected ISO-8859 encoding, converting to UTF-8..."
+      file "$MARKDOWN"
+      iconv -f ISO-8859-1 -t UTF-8 -o "$MARKDOWN" "$MARKDOWN"
+      file "$MARKDOWN"
+      sed -Ei 's/\r//g' "$MARKDOWN"
+      file "$MARKDOWN"
+    fi
+
+    # Format intermediate Markdown
+    # - The first line of the in file is taken as title
+    # - All line breaks of the in file are enforced explicitly in the Markdown
+    # - Lines starting with "|" are formatted as code
+    # - Riff|Intro|Verse|Strophe|Refrain|Chorus|Bridge|Solo|Interlude|Outro are
+    #     - TODO: formatted as code if the following line starts with |
+    #     - italicized else
     sed -Ei '1 s/(.*)/% \1/' "$MARKDOWN"
     sed -Ei '2,$ s/(^[^|].*)/\1  /g' "$MARKDOWN"
     sed -Ei '2,$ s/(^[|].*)/    \1/g' "$MARKDOWN"
-    sed -Ei '2,$ s:(Intro|Verse|Refrain|Chorus|Bridge|Interlude|Outro):\*\1\*:g' "$MARKDOWN"
+    sed -Ei '2,$ s:(Riff|Intro|Verse|Strophe|Refrain|Chorus|Bridge|Solo|Interlude|Outro):\*\1\*:g' "$MARKDOWN"
 
   # PDF input
   # - For desktop, PDFs are embedded via <embed>
@@ -82,14 +96,18 @@ for file in *; do
     # Responsive html for pdf embedding
     [[ -d "$DIR_HTML/pdf" ]] || mkdir "$DIR_HTML/pdf"
     cp "$file" "$DIR_HTML/pdf/$file"
-    printf '<embed src="%s" width="61.8%%" height="1150px" class="embedding"/>' "pdf/$file" >> "$MARKDOWN"
-    printf '<p class="link">
-              Width below 500 pixels detected.
-	      If you are using a mobile device without support for embedding pdfs, click to open the pdf externally:
-	    </p>\n' "pdf/$file" >> "$MARKDOWN"
-    printf '<a href="%s" class="link">%s</a>' "pdf/$file" "pdf/$file" >> "$MARKDOWN"
-    printf '<style type="text/css"> .embedding{display:none;} </style>' >> "$MARKDOWN"
-    printf '<style type="text/css"> @media (min-width: 500px) {.embedding{display:block;} .link{display:none;} </style>' >> "$MARKDOWN"
+    {
+      printf '<embed src="%s" width="61.8%%" height="1150px" class="embedding"/>' "pdf/$file"
+      echo '<p class="link">'
+      echo "Screen width is below 500 pixels.
+        Pdf embedding is disabled because mobile devices don't support it.
+        Click to open the pdf:"
+      echo '</p>'
+      printf '<a href="%s" class="link">%s</a>' "pdf/$file" "pdf/$file"
+      echo '<style type="text/css"> .embedding{display:none;} </style>'
+      echo '<style type="text/css"> @media (min-width: 500px) {.embedding{display:block;} .link{display:none;} </style>' 
+    } >> "$MARKDOWN"
+
 
   # Other (don't do anything but raise awareness)
   else
@@ -101,23 +119,23 @@ for file in *; do
   [[ $skip -ne 1 ]] && printf -- '- [%s](%s)\n' "${file%.*}" "${file%.*}.html" >> "$INDEX"
   skip=0
 done
-sed -i "1i %${SONGBOOK_TITLE}" $INDEX  # add songbook title to index
+sed -i "1i %${SONGBOOK_TITLE}" "$INDEX"  # add songbook title to index
 
 # Generate HTML from Markdown
-cd "$DIR_TMP"
+cd "$DIR_TMP" || exit 1
 echo
 for file in *.md; do
   echo -e "${green}Converting $file to HTML...${nc}"
 
-  # Handle ISO-8859-encoded files
-  [[ $(file "$file" | sed -E 's/^.*: ([^ ]*).*/\1/') == "ISO-8859" ]] \
-    && echo "  Detected ISO-8859 encoding, converting to UTF-8..." \
-    && iconv -f ISO-8859-1 -t UTF-8 -o "$file" "$file" 
-
   pandoc -s "$file" -o "$DIR_HTML/${file%.*}.html"
 done
 
+# DEBUG
+#exit 0
+
 # Cleanup
-cd $DIR_TMP
-rm *.md
-rmdir $DIR_TMP
+echo -n "Cleanup..."
+cd "$DIR_TMP" || exit 1
+rm ./*.md
+rmdir "$DIR_TMP"
+echo " Done!"
