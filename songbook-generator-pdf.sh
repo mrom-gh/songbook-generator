@@ -78,9 +78,11 @@ for file in *.md; do
 done
 
 echo -e "${green}Converting to PDF...${nc}"
+mv README.md README  # Handle README.md from git repository
 pandoc $( ls *.md ) \
   -V header-includes="\usepackage{pdfpages}" --pdf-engine=pdflatex --toc \
   -o "$DIR_PDF/songbook.pdf"
+mv README README.md  # Handle README.md from git repository
 
 # Cleanup
 cd $DIR_TMP

@@ -78,13 +78,13 @@ for file in *; do
     # Format intermediate Markdown
     # - The first line of the in file is taken as title
     # - All line breaks of the in file are enforced explicitly in the Markdown
-    # - Lines starting with "|" are formatted as code
+    # - Lines starting with "|" are formatted as code (unless followed by :)
     # - Riff|Intro|Verse|Strophe|Refrain|Chorus|Bridge|Solo|Interlude|Outro are
     #     - TODO: formatted as code if the following line starts with |
     #     - italicized else
     sed -Ei '1 s/(.*)/% \1/' "$MARKDOWN"
     sed -Ei '2,$ s/(^[^|].*)/\1  /g' "$MARKDOWN"
-    sed -Ei '2,$ s/(^[|].*)/    \1/g' "$MARKDOWN"
+    sed -Ei '2,$ s/(^[|][^:].*)/    \1/g' "$MARKDOWN"
     sed -Ei '2,$ s:(Riff|Intro|Verse|Strophe|Refrain|Chorus|Bridge|Solo|Interlude|Outro):\*\1\*:g' "$MARKDOWN"
 
   # PDF input
@@ -120,6 +120,7 @@ for file in *; do
   skip=0
 done
 sed -i "1i %${SONGBOOK_TITLE}" "$INDEX"  # add songbook title to index
+sed -i "/README/d" "$INDEX"  # Handle README.md from git repository
 
 # Generate HTML from Markdown
 cd "$DIR_TMP" || exit 1
@@ -129,6 +130,7 @@ for file in *.md; do
 
   pandoc -s "$file" -o "$DIR_HTML/${file%.*}.html"
 done
+rm "$DIR_HTML/README.html"  # Handle README.md of git repository
 
 # DEBUG
 #exit 0
