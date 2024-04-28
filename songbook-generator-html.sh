@@ -82,10 +82,12 @@ for file in *; do
     # - Riff|Intro|Verse|Strophe|Refrain|Chorus|Bridge|Solo|Interlude|Outro are
     #     - TODO: formatted as code if the following line starts with |
     #     - italicized else
+    # - Lines starting with // are treated as comments 
     sed -Ei '1 s/(.*)/% \1/' "$MARKDOWN"
     sed -Ei '2,$ s/(^[^|].*)/\1  /g' "$MARKDOWN"
     sed -Ei '2,$ s/(^[|][^:].*)/    \1/g' "$MARKDOWN"
     sed -Ei '2,$ s:(Riff|Intro|Verse|Strophe|Refrain|Chorus|Bridge|Solo|Interlude|Outro):\*\1\*:g' "$MARKDOWN"
+    sed -Ei '/^\/\//d' "$MARKDOWN"
 
   # PDF input
   # - For desktop, PDFs are embedded via <embed>
